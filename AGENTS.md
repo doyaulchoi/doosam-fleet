@@ -11,6 +11,15 @@
 - Merge authority does not authorize deployment, service restart, external messaging, secret access, database mutation, package installation, Tesla commands, live TSL/BLE, app-data clear, uninstall, or public exposure.
 - After merge, report the PR, head SHA, merge SHA, validation state, and every remaining `NOT VERIFIED` boundary.
 
+## Repeated-failure systemic improvement and reporting
+
+- Repeated retries, or one failure exposing a reusable contract, cleanup, retry, readiness, ownership, lease, receipt, or runner defect, must be treated as a system-improvement candidate rather than a one-off mistake.
+- Stop repeating the unchanged failing action and identify the first broken boundary and the component that owns it.
+- When scope and ownership are clear, apply the smallest safe permanent improvement and validate it with an appropriate regression test, terminal receipt, or bounded canary.
+- Even when the original task eventually succeeds, report the failure pattern, root cause, permanent improvement, validation evidence, affected systems, and remaining `NOT VERIFIED` boundaries.
+- If the improvement cannot be safely applied in the current scope, report the proposed change, target system, expected benefit, risk, and exact reason it remains unapplied.
+- Classify a failure as a transient external outage only when bounded evidence shows no reusable local defect, and record that classification.
+
 ## Safety defaults
 
 - Inspect current source, open PRs, logs, and relevant docs before changing code or operations.
