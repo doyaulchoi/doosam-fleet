@@ -6,8 +6,13 @@ on:
 
     workflow_dispatch:
 
+permissions:
+    issues: write
+    pull-requests: write
+
 jobs:
     label:
+        if: github.ref == 'refs/heads/main'
         name: Label
         runs-on: ubuntu-latest
         steps:

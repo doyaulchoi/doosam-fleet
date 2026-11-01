@@ -5,7 +5,6 @@ on:
         branches: [main]
         paths:
             - "domains/*"
-            - ".github/workflows/publish.yml"
             - "util/reserved.json"
             - "dnsconfig.js"
 
@@ -14,19 +13,46 @@ on:
 concurrency:
     group: ${{ github.ref }}-publish
 
+permissions:
+    contents: read
+
 jobs:
     dns:
+        if: github.ref == 'refs/heads/main'
         name: DNS
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+              with:
+                  persist-credentials: false
 
-            - name: Generate creds.json
-              run: echo '{"cloudflare":{"TYPE":"CLOUDFLAREAPI","apitoken":"$CLOUDFLARE_API_TOKEN"}}' > ./creds.json
-
-            - name: Push DNS records
-              uses: is-a-dev/dnscontrol-action@main
+            - name: Generate private DNSControl credentials file
               env:
                   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+              run: |
+                  python3 - <<'PY'
+                  import json
+                  import os
+                  from pathlib import Path
+
+                  token = os.environ.get("CLOUDFLARE_API_TOKEN")
+                  if not token:
+                      raise SystemExit("CLOUDFLARE_API_TOKEN is missing")
+                  credentials = Path(os.environ["RUNNER_TEMP"]) / "dnscontrol-creds.json"
+                  descriptor = os.open(credentials, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+                  with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+                      json.dump({"cloudflare": {"TYPE": "CLOUDFLAREAPI", "apitoken": token}}, stream)
+                  os.chmod(credentials, 0o600)
+                  print("DNSCONTROL_CREDENTIALS_READY=1")
+                  PY
+
+            - name: Push DNS records
+              uses: DNSControl/dnscontrol-action@ae61ea8ff214e6dba00d32fd79c1e0964d84d6d0
               with:
-                  args: push
+                  cmdargs: push
+                  version: v5.7.1
+                  creds_file: ${{ runner.temp }}/dnscontrol-creds.json
+
+            - name: Remove DNSControl credentials
+              if: always()
+              run: rm -f "$RUNNER_TEMP/dnscontrol-creds.json"

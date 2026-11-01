@@ -12,13 +12,20 @@ on:
 concurrency:
     group: ${{ github.ref }}-dnscontrol
 
+permissions:
+    contents: read
+
 jobs:
     tests:
         name: Tests
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-
-            - uses: is-a-dev/dnscontrol-action@main
               with:
-                  args: check
+                  persist-credentials: false
+
+            - uses: DNSControl/dnscontrol-action@ae61ea8ff214e6dba00d32fd79c1e0964d84d6d0
+              with:
+                  cmdargs: check
+                  version: v5.7.1
+                  creds_file: /dev/null
